@@ -59,14 +59,19 @@ public class DreadlessTeamGenerator {
 		List<String> b = new ArrayList<>();
 		shuffleTeams(allPlayers, illegal, a, b);
 		
+		// Whether or not team A starts as CT
+		boolean teamACT = RAND.nextBoolean();
+		
 		// Print the teams
 		System.out.println();
 		System.out.println("Team A:");
 		printTeam(a);
+		System.out.println("Team A begins as " + (teamACT ? "CT" : "T") + "!");
 		
 		System.out.println();
 		System.out.println("Team B:");
 		printTeam(b);
+		System.out.println("Team B begins as " + (teamACT ? "T" : "CT") + "!");
 		
 		sc.close();
 	}
@@ -82,43 +87,31 @@ public class DreadlessTeamGenerator {
 	 * @param teamB Team B array to put the players in.
 	 */
 	public static void shuffleTeams(List<String> allPlayers, List<String> illegal, List<String> teamA, List<String> teamB) {
-		// Check if the all illegal players are in the allPlayers list
-		for(String illegalPlayer : illegal) {
-			if(!allPlayers.contains(illegalPlayer))
-				throw new IllegalArgumentException("Not all players in the illegal list are in the allPlayers list.");
-		}
-		
-		// Make a copy of the lists so we can alter them safely
 		allPlayers = new ArrayList<>(allPlayers);
 		illegal = new ArrayList<>(illegal);
 		
-		// Randomly add illegal players. This is so the illegal players will be separated as much as possible
-		addPlayersRandomly(illegal, teamA, teamB);
+		Collections.shuffle(allPlayers, RAND);
+		Collections.shuffle(illegal, RAND);
 		
-		// Remove the illegal players from the allPlayers list so we don't add them twice
-		for(String player : illegal)
-			allPlayers.remove(player);
+		if(illegal.size() % 2 != 0) {
+			String player;
+			do {
+				player = allPlayers.get(RAND.nextInt(allPlayers.size()));
+			}while(illegal.contains(player));
+			illegal.add(player);
+		}
 		
-		// Randomly add the remaining players
-		addPlayersRandomly(allPlayers, teamA, teamB);
-	}
-	
-	/**
-	 * Shuffles the playerPool randomly into teamA and teamB.
-	 * This method will alter (randomize) the playerPool list.
-	 * 
-	 * @param playerPool The players to shuffle into team A and team B
-	 * @param teamA Team A array to put the players in.
-	 * @param teamB Team B array to put the players in.
-	 */
-	public static void addPlayersRandomly(List<String> playerPool, List<String> teamA, List<String> teamB) {
-		// Shuffle the list for randomness
-		Collections.shuffle(playerPool, RAND);
-		
-		// Add them to teamA and teamB
-		for(int i = 0; i < playerPool.size(); i++) {
-			String player = playerPool.get(i);
+		for(int i = 0; i < illegal.size(); i++) {
+			String player = illegal.get(i);
 			List<String> team = i % 2 == 0 ? teamA : teamB;
+			team.add(player);
+			
+			allPlayers.remove(player);
+		}
+		
+		for(int i = 0; i < allPlayers.size(); i++) {
+			String player = allPlayers.get(i);
+			List<String> team = (i+1) % 2 == 0 ? teamA : teamB;
 			team.add(player);
 		}
 	}
